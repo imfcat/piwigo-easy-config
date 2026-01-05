@@ -9,6 +9,35 @@ load_language('plugin.lang', EASY_CONFIG_PATH);
 
 $default_config_path = DEFAULT_CONFIG_DIR;
 $custom_config_path = CUSTOM_CONFIG_PATH;
+$EC_ACTION = get_admin_plugin_menu_link(dirname(__FILE__).'/admin.php');
+
+// 下载配置文件
+if (isset($_POST['download_config'])) {
+    if (file_exists($custom_config_path)) {
+        // 清除缓冲区，防止之前的输出污染文件内容
+        if (ob_get_level()) ob_end_clean();
+
+        header('Content-Type: application/octet-stream');
+        header('Content-Disposition: attachment; filename="config_ec.inc.php"');
+        header('Content-Length: ' . filesize($custom_config_path));
+        
+        readfile($custom_config_path);
+        exit;
+    } else {
+        $page['errors'][] = $lang['ec_file_not_found'];
+    }
+}
+
+// 删除配置
+if (isset($_POST['delete_all_config'])) {
+    if (file_exists($custom_config_path)) {
+        if (unlink($custom_config_path)) {
+            $page['infos'][] =$lang['ec_delete_success'];
+        } else {
+            $page['errors'][] = $lang['ec_delete_error'];
+        }
+    }
+}
 
 // 保存处理
 if (isset($_POST['save_config'])) {
@@ -55,6 +84,10 @@ if (isset($_POST['save_config'])) {
 // 读取已保存的自定义配置
 $saved_conf = array();
 if (file_exists($custom_config_path)) {
+    // 防止载入缓存
+    if (function_exists('opcache_invalidate')) {
+        opcache_invalidate($custom_config_path, true);
+    }
     $saved_conf = (function($path) {
         $conf = array();
         include($path);
@@ -67,71 +100,87 @@ $lines = file($default_config_path);
 $parsed_items = array();
 $comment_buffer = "";
 $is_in_multiline_comment = false;
-
+$conf_multiline_buffer = '';
+$is_in_conf_multiline = false;
 foreach ($lines as $line) {
     $trim_line = trim($line);
 
-    // 处理注释
+    // 处理空行
     if (empty($trim_line)) {
         if (!empty($comment_buffer)) $comment_buffer .= "<br>";
         continue;
     }
 
-    // 开始多行注释 /**
+    // 开始多行注释
     if (strpos($trim_line, '/**') === 0) {
         $is_in_multiline_comment = true;
         $comment_buffer .= format_comment_line($trim_line);
         continue;
     }
     
-    // 结束多行注释 */
+    // 结束多行注释
     if (strpos($trim_line, '*/') !== false && $is_in_multiline_comment) {
         $is_in_multiline_comment = false;
         $comment_buffer .= format_comment_line($trim_line) . "<br>";
         continue;
     }
 
-    // 在多行注释中
+    // 多行注释中
     if ($is_in_multiline_comment) {
         $comment_buffer .= format_comment_line($trim_line);
         continue;
     }
 
-    // 单行注释 //
+    // 单行注释
     if (strpos($trim_line, '//') === 0) {
         $comment_buffer .= format_comment_line($trim_line);
         continue;
     }
 
     // 处理配置行
-    if (preg_match('/^\$conf\[[\'"]([^\'"]+)[\'"]\]\s*=\s*(.+);/', $trim_line, $matches)) {
-        $key = $matches[1];
-        $raw_default_value = $matches[2];
-
-        // 优先显示已保存的自定义值
-        $current_value = isset($saved_conf[$key]) ? var_export_string($saved_conf[$key]) : '';
-        $is_customized = isset($saved_conf[$key]);
-
-        // 创建翻译键名
-        $lang_key = 'conf_desc_' . $key;
-        if (isset($lang[$lang_key])) {
-            $final_description = $lang[$lang_key];
-        } else {
-            $final_description = $comment_buffer;
-        }
-
-        $parsed_items[] = array(
-            'key' => $key,
-            'default_raw' => $raw_default_value,
-            'description' => $final_description,
-            'current_value' => $current_value,
-            'is_customized' => $is_customized
+    $target_line  = $is_in_conf_multiline ? $conf_multiline_buffer : $trim_line;
+    if (preg_match('/^\$conf\[[\'"]([^\'"]+)[\'"]\]\s*=\s*(.+);/', $target_line, $matches)) {
+        $parsed_items[] = build_config_item(
+            $matches[1],
+            $matches[2],
+            $saved_conf,
+            $lang,
+            $comment_buffer
         );
 
         $comment_buffer = "";
-    } else {
-        // 
+        $conf_multiline_buffer = '';
+        $is_in_conf_multiline = false;
+        continue;
     }
+
+    if (strpos($line, '$conf[') === 0) {
+        $conf_multiline_buffer = $trim_line;
+        $is_in_conf_multiline  = true;
+    } elseif ($is_in_conf_multiline) {
+        $conf_multiline_buffer .= $trim_line;
+    }
+}
+
+/**
+ * 构建配置项
+ */
+function build_config_item($key, $raw_default_value, $saved_conf, $lang, $comment_buffer) {
+    // 优先显示已保存的自定义值
+    $current_value = isset($saved_conf[$key]) ? var_export_string($saved_conf[$key]) : '';
+    $is_customized = isset($saved_conf[$key]);
+
+    // 创建翻译键名
+    $lang_key = 'conf_desc_' . $key;
+    $final_description = isset($lang[$lang_key]) ? $lang[$lang_key] : $comment_buffer;
+
+    return [
+        'key' => $key,
+        'default_raw' => $raw_default_value,
+        'description' => $final_description,
+        'current_value' => $current_value,
+        'is_customized' => $is_customized
+    ];
 }
 
 /**

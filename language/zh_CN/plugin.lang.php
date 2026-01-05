@@ -4,13 +4,20 @@ $lang['ec_page_title'] = 'EasyConfig 配置编辑器';
 $lang['ec_intro'] = '此配置页面基于 config_default.inc.php 文件自动生成。';
 $lang['ec_save_path'] = '修改后的值将保存到 local/config/config_ec.inc.php。';
 $lang['ec_input_hint'] = '<b>注意：输入值时无需携带引号。</b>输入框支持 true, false, 数字或字符串。如果是数组，请严格按照 PHP array() 语法书写。';
-$lang['ec_note'] = '<b>想要正确使用，请在 config.inc 中任意位置插入</b> [<code style="color:orange">include_once(\'config_ec.inc.php\');</code>]，可以使用 LocalFiles Editor 编辑';
+$lang['ec_note'] = '<b>想要正确使用，请在 config.inc.php 中任意位置插入</b> [<code style="color:orange">include_once(\'config_ec.inc.php\');</code>]，可以使用 LocalFiles Editor 编辑';
 $lang['ec_value_label'] = '当前值：';
 $lang['ec_default_ref'] = '默认参考：';
 $lang['ec_revert_label'] = '删除自定义值并恢复默认';
 $lang['ec_save_btn'] = '保存修改';
 $lang['ec_saved_success'] = '配置已成功保存。';
 $lang['ec_saved_error'] = '写入配置文件失败，请检查权限。';
+
+$lang['ec_download_btn'] = '导出配置文件';
+$lang['ec_delete_btn'] = '重置配置文件';
+$lang['ec_delete_confirm'] = '警告：这将删除配置文件 (config_ec.inc.php) 确定要继续吗？';
+$lang['ec_delete_success'] = '配置文件已删除。';
+$lang['ec_delete_error'] = '无法删除配置文件。';
+$lang['ec_file_not_found'] = '找不到配置文件，无法下载。';
 
 // 配置项描述翻译映射
 // 格式: $lang['conf_desc_VARIABLE_NAME'] = "描述...";
@@ -19,7 +26,9 @@ $lang['conf_desc_'] = '';
 // |                                 misc                                  |
 // +-----------------------------------------------------------------------+
 $lang['conf_desc_picture_ext'] = '图片文件的扩展名，必须是 file_ext 的子集。<br>Specific note for SVG support: do not add \'svg\' in picture_ext, have it only in file_ext';
-$lang['conf_desc_file_ext'] = '';
+$lang['conf_desc_file_ext'] = "允许的文件扩展名（区分大小写）
+<br>* 如果您启用了“eps”文件扩展名，请确保在ImageMagick策略中已授权此文件类型
+<br>* 如果您希望允许上传file_ext文件，请不要忘记将 \$conf['upload_form_all_types'] 设置为 true";
 $lang['conf_desc_enable_formats'] = 'Piwigo 是否应搜索多种格式？';
 $lang['conf_desc_format_ext'] = '文件格式的扩展名，例如照片（或其他任何文件）的附加版本。格式位于子目录 pwg_format 中。';
 $lang['conf_desc_top_number'] = '显示“最佳评分”和“最受欢迎”类别的数量';
