@@ -3,8 +3,7 @@
 $lang['ec_page_title'] = 'EasyConfig 配置编辑器';
 $lang['ec_intro'] = '此配置页面基于 config_default.inc.php 文件自动生成。';
 $lang['ec_save_path'] = '修改后的值将保存到 local/config/config_ec.inc.php。';
-$lang['ec_input_hint'] = '<b>注意：输入值时无需携带引号。</b>输入框支持 true, false, 数字或字符串。如果是数组，请严格按照 PHP array() 语法书写。';
-$lang['ec_note'] = '<b>想要正确使用，请在 config.inc.php 中任意位置插入</b> [<code style="color:orange">include_once(\'config_ec.inc.php\');</code>]，可以使用 LocalFiles Editor 编辑';
+$lang['ec_note'] = '<b>想要正常使用，请在 config.inc.php 中任意位置插入</b> [<code style="color:orange">include_once(\'config_ec.inc.php\');</code>]，可以使用 LocalFiles Editor 编辑';
 $lang['ec_value_label'] = '当前值：';
 $lang['ec_default_ref'] = '默认参考：';
 $lang['ec_revert_label'] = '删除自定义值并恢复默认';

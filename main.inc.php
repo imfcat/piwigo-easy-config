@@ -1,7 +1,7 @@
 <?php
 /*
 Plugin Name: EasyConfig
-Version: 1.0
+Version: 1.3
 Description: Parse config_default and edit settings visually.
 Plugin URI: https://piwigo.org/ext/index.php?eid=1059
 Author: Imfcat
